@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8C2B4FD4-3726-43EC-BAA2-7AA0F5E59705}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>FiniteElementMethod</RootNamespace>
+    <AssemblyName>FiniteElementMethod</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\..\FEM\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BriefFiniteElementNet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\C#\BriefFiniteElement.Net\BriefFiniteElementNet\bin\Debug\net45\BriefFiniteElementNet.dll</HintPath>
+    </Reference>
+    <Reference Include="BriefFiniteElementNet.Common">
+      <HintPath>..\..\..\..\..\C#\BriefFiniteElement.Net\BriefFiniteElementNet\bin\Debug\net45\BriefFiniteElementNet.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="BriefFiniteElementNet.Controls, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\C#\BriefFiniteElement.Net\BriefFiniteElementNet.Controls\bin\Debug\BriefFiniteElementNet.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="BriefFiniteElementNet.Validation">
+      <HintPath>..\..\..\..\..\C#\BriefFiniteElement.Net\BriefFiniteElementNet.Validation\bin\Debug\BriefFiniteElementNet.Validation.dll</HintPath>
+    </Reference>
+    <Reference Include="CSparse">
+      <HintPath>..\..\..\..\..\C#\BriefFiniteElement.Net\BriefFiniteElementNet\bin\Debug\net45\CSparse.dll</HintPath>
+    </Reference>
+    <Reference Include="Para3dMath">
+      <HintPath>C:\Program Files\Autodesk\3ds Max Design 2015\scripts\Para3D\dlls\Para3dMath.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CrossSections\CrossSection.cs" />
+    <Compile Include="CrossSections\SolidRectangle_Section.cs" />
+    <Compile Include="CrossSections\I_Section.cs" />
+    <Compile Include="CrossSections\Standard_Section.cs" />
+    <Compile Include="DesignCheck.cs" />
+    <Compile Include="DesignMethod.cs" />
+    <Compile Include="GoldenSearch.cs" />
+    <Compile Include="MAX\MAX_Element.cs" />
+    <Compile Include="MAX\MAX_Load.cs" />
+    <Compile Include="MAX\MAX_Node.cs" />
+    <Compile Include="polygon.cs" />
+    <Compile Include="Triangle.cs" />
+    <Compile Include="Triangulation.cs" />
+    <Compile Include="UnitConversion.cs" />
+    <None Include="Exports\Class1.cs" />
+    <Compile Include="Material.cs" />
+    <Compile Include="MAX\MaxListener.cs" />
+    <None Include="Exports\Class2.cs" />
+    <None Include="Exports\Export_BFEM.cs" />
+    <None Include="Exports\Export_S2K.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="FiniteElementMethod.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
