@@ -74,18 +74,31 @@ namespace FiniteElementMethod.CrossSections
         /// <param name="tw">web thickness</param>
         /// <param name="mat">Material of the section</param>
         /// <returns>The section object of the desired class</returns>
-        public static CrossSection CreateSection(string name, double h, double w, double tf, double tw)
-        {           
+        public static CrossSection CreateSection(string name, double h, double w, double tf, double tw,Material material)
+        {
+            CrossSection section;
             switch (name.ToLower())
             {                 
                 case "b":
-                    return new SolidRectangle_Section(h, w);
-                 
+                    section= new SolidRectangle_Section(h, w);
+                    break;
                 case "i":
-                    return new I_Section(w, h, tf, tw);                
+                    section= new I_Section(w, h, tf, tw);
+                    break;
+                case "c":
+                    section = new C_Section(w, h, tf, tw);
+                    break;
+                case "l":
+                    section = new L_Section(w, h, tf, tw);
+                    break;
+                case "t":
+                    section = new T_Section(w, h, tf, tw);
+                    break;
                 default:
                     return null;
-            }                
+            }
+            section.Mat = material;
+            return section;
         }
         /*
         public Section_Class GetSectionClass(LoadDirection dir )

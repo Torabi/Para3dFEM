@@ -168,6 +168,11 @@ namespace FiniteElementMethod
                     return x;
             }
         }
+
+        public static Vector ConvertToMeters(Vector x)
+        {
+            return ConvertToMeters(1.0) * x;
+        }
         /// <summary>
         /// Convert given length to meters based on scene units in max
         /// and round the number off by 5 digits

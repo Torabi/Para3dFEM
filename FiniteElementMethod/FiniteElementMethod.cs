@@ -10,6 +10,8 @@ using BriefFiniteElementNet.Loads;
 using FiniteElementMethod.CrossSections;
 using BriefFiniteElementNet.Validation;
 using BriefFiniteElementNet.Materials;
+using BriefFiniteElementNet.Mathh;
+
 namespace FiniteElementMethod
 {
     public class FEM_MAX
@@ -367,13 +369,49 @@ namespace FiniteElementMethod
         }
         public void AddConcentratedLoad (double fx,double fy,double fz,double mx,double my,double mz,double dist,int load_unit)
         {
-            double l =  currentElement.GetElementLength();
-            IsoPoint p =  new IsoPoint( 2*(dist / l)-1);
 
-            var _l = new ConcentratedLoad(UnitConversion.ConverInputForce(new Force(fx, fy, fz, mx, my, mz),(ForceUnit)load_unit), p, CoordinationSystem.Global);            
-            
-            currentElement.Loads.Add(_l);
-           
+            //IsoPoint p =  new IsoPoint(dist);
+            //var _l = new ConcentratedLoad(UnitConversion.ConverInputForce(new Force(fx, fy, fz, mx, my, mz),(ForceUnit)load_unit), p, CoordinationSystem.Global);                        
+            //currentElement.Loads.Add(_l);
+
+            //var coord = (coordSys == 1) ? CoordinationSystem.Global : CoordinationSystem.Local;
+            if (fx != 0)
+            {
+                var _l = new PartialNonUniformLoad();
+                _l.Case = DeadLoad;
+                _l.CoordinationSystem = CoordinationSystem.Global;
+                _l.Direction = new Vector(1, 0, 0);
+                _l.StartLocation = new IsoPoint( dist - 0.001);
+                _l.EndLocation = new IsoPoint(dist + 0.001);
+                _l.SeverityFunction = new SingleVariablePolynomial(fx);                
+                currentElement.Loads.Add(_l);
+
+            }
+            if (fy != 0)
+            {
+                var _l = new PartialNonUniformLoad();
+                _l.Case = DeadLoad;
+                _l.CoordinationSystem = CoordinationSystem.Global;
+                _l.Direction = new Vector(0, 1, 0);
+                _l.StartLocation = new IsoPoint(dist - 0.001);
+                _l.EndLocation = new IsoPoint(dist + 0.001);
+                _l.SeverityFunction = new SingleVariablePolynomial(fy);
+                currentElement.Loads.Add(_l);
+
+            }
+            if (fz != 0)
+            {
+                var _l = new PartialNonUniformLoad();
+                _l.Case = DeadLoad;
+                _l.CoordinationSystem = CoordinationSystem.Global;
+                _l.Direction = new Vector(0, 0, 1);
+                _l.StartLocation = new IsoPoint(dist - 0.001);
+                _l.EndLocation = new IsoPoint(dist + 0.001);
+                _l.SeverityFunction = new SingleVariablePolynomial(fz);
+                currentElement.Loads.Add(_l);
+
+            }
+
         }
       /// <summary>
       /// set the element cross section 
@@ -383,7 +421,7 @@ namespace FiniteElementMethod
       /// <param name="tf">Flange thickness </param>
       /// <param name="tw">Web thickness </param>
       /// <param name="section">section type (B,I,L,..) </param>
-        public void SetSection (float w, float h, float tf, float tw,string section)
+        public void SetSection (float w, float h, float tf, float tw, float rotationDegree,string section)
         {
         
             double W = UnitConversion.ConvertToMeters(System.Convert.ToDouble(w) );
@@ -392,7 +430,7 @@ namespace FiniteElementMethod
             double TW = UnitConversion.ConvertToMeters(System.Convert.ToDouble(tw));
 
             //Section s = new Section(section, H, W, TF, TW);
-            CrossSection s = Standard_Section.CreateSection(section, H, W, TF, TW);
+            CrossSection s = Standard_Section.CreateSection(section, H, W, TF, TW,currentElement.Mat);
             //s.Mat = currentElement.Mat;
             int existingSectionId = Sections.FindIndex(item=>item.Equals(s));
             if (existingSectionId==-1 )
@@ -406,7 +444,7 @@ namespace FiniteElementMethod
                 s = Sections[existingSectionId];
             }
             currentElement.Sec = s; // this will update the Area and the geometry property of the frameelement 
-            
+            currentElement.WebRotation =   rotationDegree ;
         }
        /*
         public Force GetFrameInternalForce(int elementIndex, int forceUnit, double x)

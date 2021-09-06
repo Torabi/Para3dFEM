@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\FEM\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -32,17 +32,17 @@
   <ItemGroup>
     <Reference Include="BriefFiniteElementNet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\C#\BriefFiniteElement.Net\BriefFiniteElementNet\bin\Debug\net45\BriefFiniteElementNet.dll</HintPath>
+      <HintPath>..\..\BriefFiniteElement.Net\BriefFiniteElementNet\bin\Debug\net45\BriefFiniteElementNet.dll</HintPath>
     </Reference>
     <Reference Include="BriefFiniteElementNet.Common">
-      <HintPath>..\..\..\..\..\C#\BriefFiniteElement.Net\BriefFiniteElementNet\bin\Debug\net45\BriefFiniteElementNet.Common.dll</HintPath>
+      <HintPath>..\..\BriefFiniteElement.Net\BriefFiniteElementNet\bin\Debug\net45\BriefFiniteElementNet.Common.dll</HintPath>
     </Reference>
     <Reference Include="BriefFiniteElementNet.Controls, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\C#\BriefFiniteElement.Net\BriefFiniteElementNet.Controls\bin\Debug\BriefFiniteElementNet.Controls.dll</HintPath>
+      <HintPath>..\..\BriefFiniteElement.Net\BriefFiniteElementNet.Validation\bin\Debug\BriefFiniteElementNet.Controls.dll</HintPath>
     </Reference>
     <Reference Include="BriefFiniteElementNet.Validation">
-      <HintPath>..\..\..\..\..\C#\BriefFiniteElement.Net\BriefFiniteElementNet.Validation\bin\Debug\BriefFiniteElementNet.Validation.dll</HintPath>
+      <HintPath>..\..\BriefFiniteElement.Net\BriefFiniteElementNet.Validation\bin\Debug\BriefFiniteElementNet.Validation.dll</HintPath>
     </Reference>
     <Reference Include="CSparse">
       <HintPath>..\..\..\..\..\C#\BriefFiniteElement.Net\BriefFiniteElementNet\bin\Debug\net45\CSparse.dll</HintPath>
@@ -61,6 +61,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CrossSections\CrossSection.cs" />
+    <Compile Include="CrossSections\T_Section.cs" />
+    <Compile Include="CrossSections\L_Section.cs" />
+    <Compile Include="CrossSections\C_Section.cs" />
     <Compile Include="CrossSections\SolidRectangle_Section.cs" />
     <Compile Include="CrossSections\I_Section.cs" />
     <Compile Include="CrossSections\Standard_Section.cs" />
@@ -79,7 +82,7 @@
     <Compile Include="MAX\MaxListener.cs" />
     <None Include="Exports\Class2.cs" />
     <None Include="Exports\Export_BFEM.cs" />
-    <None Include="Exports\Export_S2K.cs" />
+    <Compile Include="Exports\Export_S2K.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FiniteElementMethod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

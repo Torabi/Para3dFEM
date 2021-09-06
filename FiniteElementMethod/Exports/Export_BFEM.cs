@@ -58,19 +58,19 @@ namespace FiniteElementMethod
                 //var e1 = new FrameElement2Node(n1, n5) { Label = "e1" };
                 log += string.Format("var {0} = new FrameElement2Node({1}, {2}) ", e.Label, e.Nodes.First().Label, e.Nodes.Last().Label) + "{ Label = \"{" + e.Label + "}\" };\r\n";
                 
-                if (e is FrameElement2Node)
+                if (e is BarElement)
                 {
-                    FrameElement2Node f = e as FrameElement2Node;
+                    BarElement f = e as BarElement;
                     if (e.Label.Substring(0,1)== "T")
                     {
                         // truss element
-                        log += string.Format("{0}.A = {1};{0}.E = {2};\r\n", e.Label, f.A, f.E);
+                        //log += string.Format("{0}.A = {1};{0}.E = {2};\r\n", e.Label, f.A, f.E);
                     }
                     else
                     {
                         // frame element
-                        log += string.Format("{0}.E = {1};{0}.G = {2};\r\n", e.Label, f.E, f.G);
-                        int secId = model.sectionIds[i];
+                        //log += string.Format("{0}.E = {1};{0}.G = {2};\r\n", e.Label, f.E, f.G);
+                        int secId = f.Section.GetHashCode();
                         if (!alreadyMade.Contains(secId))
                         {
                             log += "var sec" + secId.ToString() + "= " + model.sections[secId].GetCString()+";\r\n";

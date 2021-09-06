@@ -61,8 +61,8 @@ namespace FiniteElementMethod
         /// <summary>
         /// used for double integration
         /// </summary>
-        List<Vector> FirstIntegration;
-        List<Vector> SecondIntegration;
+        //public List<Vector> FirstIntegration;
+        //List<Vector> SecondIntegration;
         /// <summary>
         /// previous position on the beam 
         /// </summary>
@@ -110,8 +110,8 @@ namespace FiniteElementMethod
             //Torsion_Value = Y_Moment_Value = Z_Moment_Value = Axial_Force_Value = Y_Shear_Value = Z_Shear_Value = Vector.Zero;
             //Torsion_Location = Y_Moment_Location = Z_Moment_Location = Axial_Force_Location = Y_Shear_Location = Z_Shear_Location = Vector.Zero;
             x0 = division = 0;
-            FirstIntegration = new List<Vector>();
-            SecondIntegration = new List<Vector>();
+            //FirstIntegration = new List<Vector>();
+            //SecondIntegration = new List<Vector>();
 
         }
         public Material Mat
@@ -197,7 +197,11 @@ namespace FiniteElementMethod
         {
             
             var l = 2*x-1;
-            Force tmp = GetInternalForceAt(l,FEM_MAX.LoadCombin);
+            if (l <= -1)
+                l += 1e-9;
+            else if (l>=1)
+                l -= 1e-9;
+            Force tmp = GetExactInternalForceAt(l,FEM_MAX.LoadCombin);
 
 
             FindMaximum(tmp.Mx, l, ref maximumForce[0], ref maximumForceLocation[0]);
@@ -207,29 +211,26 @@ namespace FiniteElementMethod
             FindMaximum(tmp.Fy, l, ref maximumForce[4], ref maximumForceLocation[4]);
             FindMaximum(tmp.Fz, l, ref maximumForce[5], ref maximumForceLocation[5]);
 
-             // save the first moment value in m0
-            if (division < 1)
-            {
-                m0 = tmp.Moments;
-                FirstIntegration.Add(Vector.Zero);
-                SecondIntegration.Add(Vector.Zero);
-            }
-            else
-            {
-                var i1 = FirstIntegration[division-1]+0.5*(x-x0)*(tmp.Moments+m0);
-                FirstIntegration.Add(i1);
-                var i2 = SecondIntegration[division-1]+(x-x0)*FirstIntegration[division-1]+.25*Math.Pow((x-x0),2)*(tmp.Moments+m0);
-                SecondIntegration.Add(i2);
-            }
-            
-             division++;
+            // // save the first moment value in m0
+            //if (division < 1)
+            //{
+                
+            //    FirstIntegration.Add(tmp.Moments);
+            //    SecondIntegration.Add(Vector.Zero);
+            //}
+            //else
+            //{
+            //    var i1 = FirstIntegration[division-1]+0.5*(x-x0)*(tmp.Moments+m0);
+            //    FirstIntegration.Add(i1);
+            //    var i2 = SecondIntegration[division - 1] + 0.5*(x - x0) * (FirstIntegration[division - 1] + i1);//(x-x0)*FirstIntegration[division-1]+.25*Math.Pow((x-x0),2)*(tmp.Moments+m0);
+            //    SecondIntegration.Add(i2);
+            //}
+            //m0 = tmp.Moments;
+            division++;
             return UnitConversion.ConvertOutputForce(tmp, (ForceUnit)forceUnit);
         }
        
-        public double GetDisplacement (double x)
-        {
-            return 0;
-        }
+        
         /// <summary>
         /// finds the maximum stress along the member
         /// </summary>
@@ -319,6 +320,14 @@ namespace FiniteElementMethod
             
             return UnitConversion.ConvertOutputForce(maximumForce[forceIndex-1][sign-1],(ForceUnit)forceUnit);
         }
+
+        public Vector GetInternalDisplacement(double xi)
+        {
+            Displacement d= GetInternalDisplacementAt(xi, FEM_MAX.LoadCombin);
+            Vector dis = new Vector(d.DX, d.DY , d.DZ );
+            return UnitConversion.ConvertToMeters(dis);
+        }
+
         /*
         /// <summary>
         /// Calculate the actual maxium force and return all values in a jagged array[6][3]

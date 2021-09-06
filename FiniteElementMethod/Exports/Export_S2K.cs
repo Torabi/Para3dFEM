@@ -10,6 +10,7 @@ using BriefFiniteElementNet.Loads;
 using CSparse;
 using FiniteElementMethod.CrossSections;
 using BriefFiniteElementNet;
+using BriefFiniteElementNet.Loads;
 
 namespace FiniteElementMethod
 {
@@ -76,7 +77,7 @@ namespace FiniteElementMethod
             string tmp = "";
           
             tmp += "\t" + string.Format("SectionName=SEC{0}   ShapeName={1}{0}   X={2}   Y={3}   Radius=0   ShapeMat={5}{5}   ZOrder=1   FillColor=Green   Reinforcing=No\r\n",s.ID,s.SectionType,s.Shape[0].Y,s.Shape[0].Z,s.Mat.Name,s.Mat.ID);
-            for (int i = 1; i < s.Shape.Count-1;i++)
+            for (int i = 1; i < s.Shape.Length-1;i++)
                 tmp += "\t" + string.Format("SectionName=SEC{0}   ShapeName={1}{0}   X={2}   Y={3}   Radius=0 ", s.ID, s.SectionType, s.Shape[i].Y, s.Shape[i].Z)+"\r\n";
             return (tmp + "\r\n");
         }
@@ -111,6 +112,7 @@ namespace FiniteElementMethod
                 string r3 = (n.Constraints.RZ== DofConstraint.Fixed)?"Yes":"No";
                 joinRestraints += "\t" + "Joint=" + (n.Label)+"\t";
                 joinRestraints += "U1=" + u1 + "\t" + "U2=" + u2 + "\t" + "U3=" + u3 + "\t" + "R1=" + r1 + "\t" + "R2=" + r2 + "\t" + "R3=" + r3 + "\r\n";
+                
             }
 
             string frame_connectivity = "";
@@ -118,30 +120,32 @@ namespace FiniteElementMethod
             string frame_loads_point = "";
             string frame_loads_distributed = "";
             int i = 0;
-            foreach (BarElement _e in model.model.Elements)
+            foreach (MAX_Element _e in model.model.Elements)
             {
                 /* 
                  Frame=1   JointI=1   JointJ=2   IsCurved=No   Length=288   CentroidX=288   CentroidY=0   CentroidZ=144
                  */
-                MAX_Element _me = model._elements[i];   
-                Point center = Point.MidPoint(_e.Nodes.Last().Location, _e.Nodes.First().Location);
+                 
+                double centerX = (_e.Nodes.Last().Location.X + _e.Nodes.First().Location.X)/2;
+                double centerY = (_e.Nodes.Last().Location.Y + _e.Nodes.First().Location.Y) / 2;
+                double centerZ = (_e.Nodes.Last().Location.Z + _e.Nodes.First().Location.Z) / 2;
                 double length = _e.GetElementLength();
                 frame_connectivity += "\t" + "Frame=" + _e.Label+"\t";
-                frame_connectivity += "JointI=" + _e.Nodes.First().Label + "\t" + "JointJ=" + _e.Nodes.Last().Label + "\t";
-                frame_connectivity += "IsCurved=No" + "\t" + "Length=" + length.ToString() + "\t";
-                frame_connectivity += "CentroidX=" + center.X.ToString() + "\t" + "CentroidY=" + center.Y.ToString() + "\t" + "CentroidZ=" + center.Z.ToString() + "\r\n";
+                frame_connectivity += $"JointI={_e.Nodes.First().Label}\tJointJ={_e.Nodes.Last().Label}\t";
+                frame_connectivity += $"IsCurved=No\tLength={length}\t";
+                frame_connectivity += $"CentroidX={centerX}\tCentroidY={centerY}\tCentroidZ={centerZ}\r\n";
                 //frame_connectivity += "IsCurved=No" + "\t" + "Length=" + _e.GetElementLength().ToString() + "\t";
-                if (_e is FrameElement2Node)
+                if (_e is BarElement)
                 {
                     
-                    FrameElement2Node _f = _e as FrameElement2Node;
+                    BarElement _f = _e as BarElement;
                     /*
                      *   Frame=1   SectionType="I/Wide Flange"   AutoSelect=N.A.   AnalSect=FSEC1   DesignSect=FSEC1   MatProp=Default
                     */
                     
-                    frame_sections += "\t"+string.Format("Frame={0}   SectionType=\"{1}\"   AutoSelect=N.A.   AnalSect=SEC{2}   DesignSect=SEC{2}   MatProp=Default",_e.Label, _me.Sec.SectionType, _me.Sec.ID) + "\r\n";
+                    frame_sections += "\t"+string.Format("Frame={0}   SectionType=\"{1}\"   AutoSelect=N.A.   AnalSect=SEC{2}   DesignSect=SEC{2}   MatProp=Default",_e.Label, _e.Sec.SectionType, _e.Sec.ID) + "\r\n";
                     
-                    foreach (Load l in _e.Loads)
+                    foreach (ElementalLoad l in _e.Loads)
                     {
                         /*
                         * TABLE:  "FRAME LOADS - POINT"
@@ -150,12 +154,29 @@ namespace FiniteElementMethod
                         if (l is ConcentratedLoad)
                         {
                             ConcentratedLoad pl = l as ConcentratedLoad;
+                            
                             //string cs = (pl.CoordinationSystem == CoordinationSystem.Global) ? "GLOBAL" : "LOCAL";
                             string cs = pl.CoordinationSystem.ToString().ToUpper();
-                            string dir = (cs == "GLOBAL") ? pl.Direction.ToString() : (((int)pl.Direction+1).ToString());
-                            double ad = pl.DistanseFromStartNode;
-                            double rd = ad / length;
-                            frame_loads_point += "\t"+string.Format("Frame={0}   LoadPat=DEAD   CoordSys={1}   Type=Force   Dir={2}   DistType=RelDist   RelDist={3}   AbsDist={4}   Force={5}\r\n", _e.Label,cs,dir,rd,ad,pl.Force);
+                            double rd = (pl.ForceIsoLocation.Xi + 1) / 2.0; //pl.DistanseFromStartNode;
+                            double ad = length * rd;
+                            
+                            if (pl.Force.Fx > 0)
+                            {
+                                //string dir = (cs == "GLOBAL") ? pl.Direction.ToString() : (((int)pl.Direction + 1).ToString());
+                                string dir = (cs == "GLOBAL") ? "X" : "1";
+                                //double rd = ad / length;
+                                frame_loads_point += "\t" + $"Frame={ _e.Label}   LoadPat=DEAD   CoordSys={cs}   Type=Force   Dir={dir}   DistType=RelDist   RelDist={rd}   AbsDist={ad}   Force={pl.Force.Fx}\r\n";
+                            }
+                            if (pl.Force.Fy > 0)
+                            {                                
+                                string dir = (cs == "GLOBAL") ? "Y" : "2";                                
+                                frame_loads_point += "\t" + $"Frame={ _e.Label}   LoadPat=DEAD   CoordSys={cs}   Type=Force   Dir={dir}   DistType=RelDist   RelDist={rd}   AbsDist={ad}   Force={pl.Force.Fy}\r\n";
+                            }
+                            if (pl.Force.Fz > 0)
+                            {
+                                string dir = (cs == "GLOBAL") ? "Z" : "3";
+                                frame_loads_point += "\t" + $"Frame={ _e.Label}   LoadPat=DEAD   CoordSys={cs}   Type=Force   Dir={dir}   DistType=RelDist   RelDist={rd}   AbsDist={ad}   Force={pl.Force.Fz}\r\n";
+                            }
                         }
                         
                         /*
@@ -164,12 +185,26 @@ namespace FiniteElementMethod
                         */
                         if (l is UniformLoad)
                         {
-                            UniformLoad1D ul = l as UniformLoad1D;
+                            UniformLoad ul = l as UniformLoad;
                             if (ul.Case.CaseName != "SelfLoad") // ignore the self load
                             {
                                 string cs = ul.CoordinationSystem.ToString().ToUpper();
-                                string dir = (cs=="GLOBAL")?ul.Direction.ToString():(((int)ul.Direction+1).ToString());
-                                frame_loads_distributed += "\t" + string.Format("Frame={0}   LoadPat=DEAD   CoordSys={1}   Type=Force   Dir={2}   DistType=RelDist   RelDistA=0   RelDistB=1   AbsDistA=0   AbsDistB={3}   FOverLA={4}   FOverLB={4} \r\n", _e.Label, cs, dir, length, ul.Magnitude);
+                                if (ul.Direction.X > 0)
+                                {
+                                    string dir = (cs == "GLOBAL") ? "X" : "1";
+                                    frame_loads_distributed += "\t" + $"Frame={_e.Label}   LoadPat=DEAD   CoordSys={cs}   Type=Force   Dir={dir}   DistType=RelDist   RelDistA=0   RelDistB=1   AbsDistA=0   AbsDistB={length}   FOverLA={ul.Magnitude}   FOverLB={ul.Magnitude} \r\n";
+                                }
+                                if (ul.Direction.Y > 0)
+                                {
+                                    string dir = (cs == "GLOBAL") ? "Y" : "2";
+                                    frame_loads_distributed += "\t" + $"Frame={_e.Label}   LoadPat=DEAD   CoordSys={cs}   Type=Force   Dir={dir}   DistType=RelDist   RelDistA=0   RelDistB=1   AbsDistA=0   AbsDistB={length}   FOverLA={ul.Magnitude}   FOverLB={ul.Magnitude} \r\n";
+                                }
+                                if (ul.Direction.Z > 0)
+                                {
+                                    string dir = (cs == "GLOBAL") ? "Z" : "3";
+                                    frame_loads_distributed += "\t" + $"Frame={_e.Label}   LoadPat=DEAD   CoordSys={cs}   Type=Force   Dir={dir}   DistType=RelDist   RelDistA=0   RelDistB=1   AbsDistA=0   AbsDistB={length}   FOverLA={ul.Magnitude}   FOverLB={ul.Magnitude} \r\n";
+                                }
+
                             }
                         }
                     }
