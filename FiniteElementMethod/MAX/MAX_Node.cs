@@ -10,6 +10,7 @@ namespace FiniteElementMethod
     public class MAX_Node : Node
     {
         List<string> LoadUniqueIds;
+        internal int Index2;
         public MAX_Node(double x, double y, double z)
             : base(x, y, z)
         {

@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>FiniteElementMethod</RootNamespace>
     <AssemblyName>FiniteElementMethod</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -47,6 +48,9 @@
     <Reference Include="CSparse">
       <HintPath>..\..\..\..\..\C#\BriefFiniteElement.Net\BriefFiniteElementNet\bin\Debug\net45\CSparse.dll</HintPath>
     </Reference>
+    <Reference Include="GraphData">
+      <HintPath>..\..\GraphData\GraphData\bin\Debug\GraphData.dll</HintPath>
+    </Reference>
     <Reference Include="Para3dMath">
       <HintPath>C:\Program Files\Autodesk\3ds Max Design 2015\scripts\Para3D\dlls\Para3dMath.dll</HintPath>
       <Private>False</Private>
@@ -77,6 +81,7 @@
     <Compile Include="Triangle.cs" />
     <Compile Include="Triangulation.cs" />
     <Compile Include="UnitConversion.cs" />
+    <Compile Include="Voxel.cs" />
     <None Include="Exports\Class1.cs" />
     <Compile Include="Material.cs" />
     <Compile Include="MAX\MaxListener.cs" />

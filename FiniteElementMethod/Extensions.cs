@@ -47,8 +47,9 @@ namespace FiniteElementMethod
                 double denom = Math.Sqrt(Math.Pow(p1.Y-p2.Y,2)+Math.Pow(p1.Z-p2.Z,2));
                 return Math.Abs((p2.Y-p1.Y)*(p1.Z-p0.Z)-(p1.Y-p0.Y)*(p2.Z- p1.Z)) / denom;
             }
+      
 
-        }
+    }
   
  
 }

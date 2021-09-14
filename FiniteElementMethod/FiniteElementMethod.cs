@@ -11,6 +11,7 @@ using FiniteElementMethod.CrossSections;
 using BriefFiniteElementNet.Validation;
 using BriefFiniteElementNet.Materials;
 using BriefFiniteElementNet.Mathh;
+using GraphData;
 
 namespace FiniteElementMethod
 {
@@ -26,8 +27,9 @@ namespace FiniteElementMethod
         
         internal List<CrossSection> Sections;
         internal List<Material> Materials;
-        //internal Dictionary<int, MAX_Element> _elements;
 
+        //internal Dictionary<int, MAX_Element> _elements;
+        Voxel _voxel;
       
         public string SystemUnit
         {
@@ -44,6 +46,8 @@ namespace FiniteElementMethod
         }
         private MAX_Node currentNode;
         private MAX_Element currentElement;
+        private int _currentNodeIndex = -1;
+        private Graph<MAX_Node, MAX_Element> node_element_graph;
         /*
         enum ForceUnit
         {
@@ -65,11 +69,25 @@ namespace FiniteElementMethod
         /// <summary>
         /// reset the cross section and material database
         /// </summary>
-        public void INIT()
+        public void INIT( )
         {
             Sections = new List<CrossSection>();
             Materials = new List<Material>();
-          
+            
+            
+        }
+        /// <summary>
+        /// update the voxel of the model 
+        /// </summary>
+        /// <param name="x1"></param>
+        /// <param name="y1"></param>
+        /// <param name="z1"></param>
+        /// <param name="x2"></param>
+        /// <param name="y2"></param>
+        /// <param name="z2"></param>
+        public void AddBoundingBox(double x1, double y1,double z1, double x2, double y2, double z2)
+        {
+            _voxel.Add(x1, y1, z1, x2, y2, z2);
         }
        
         // Initiating Model, Nodes and Members
@@ -80,8 +98,17 @@ namespace FiniteElementMethod
             LoadCombin = new LoadCombination();
             LoadCombin.Add(DeadLoad, 1);
             LoadCombin.Add(SelfLoad, 1);
+            _voxel = new Voxel();
+            _currentNodeIndex = 0;
+            node_element_graph = new Graph<MAX_Node, MAX_Element>();
             INIT();
+            //INIT( x1,  y1,  z1,  x2,  y2,  z2);
        
+        }
+
+        public void Voxelization()
+        {
+            _voxel.Voxelization();
         }
         #region Node methods
         public int GetNodeCount()
@@ -99,22 +126,34 @@ namespace FiniteElementMethod
         {
             MAX_Node n = new MAX_Node(UnitConversion.RoundToMeters(x), UnitConversion.RoundToMeters(y), UnitConversion.RoundToMeters(z));
                         
-            int index = 0;
-            foreach(Node item in model.Nodes)
+            //int index = 0;
+            var existing = _voxel.Find(n, epsilon);
+            //foreach(Node item in model.Nodes)
+            //{
+            //    double dist = (item.Location - n.Location).Length;
+            //    if (dist < epsilon)
+            //    {                    
+            //        return -1*(index+1);
+            //    }
+            //    index += 1;
+            //}
+            if (existing!=null)
             {
-                double dist = (item.Location - n.Location).Length;
-                if (dist < epsilon)
-                {                    
-                    return -1*(index+1);
-                }
-                index += 1;
+            
+                return -1 * (existing.Index2);
             }
-            int i = model.Nodes.Count;
-            n.Label = "N"+(i+1).ToString();
-      
-       
-            model.Nodes.Add(n);            
-            return (i+1);                        
+           
+            node_element_graph.AddNode(n);
+            _currentNodeIndex++;
+            
+            //int index = model.Nodes.Count+1;
+            //int i = model.Nodes.Count;
+            model.Nodes.Add(n);
+            n.Index2 = _currentNodeIndex;
+            n.Label = "N"+(_currentNodeIndex).ToString();
+             
+            
+            return _currentNodeIndex;                        
         }
         /// <summary>
         /// set the current node by given node index 
@@ -217,91 +256,64 @@ namespace FiniteElementMethod
             return (model.Elements[index] as MAX_Element);
         }
         #endregion
-        #region Truss methods
-        /*
-        /// <summary>
-       /// Add a truss element into the model
-       /// </summary>
-       /// <param name="node1">first node of the element</param>
-        /// <param name="node2">second node of the element</param>
-        /// <param name="E">elastic modulus</param>
-        /// <param name="emu">unit of E 1:GFA 2:PA</param>
-       /// <param name="A">Cross section Area</param>
-       /// <param name="au">Area unit</param>
-        public void AddTrussElement(int node1,int node2,int emu, double A,int au)
-        {
-            var n1 = model.Nodes[node1];
-            var n2 = model.Nodes[node2];
-            if (n1 == null || n2 == null)
-                return ;
-            int c = model.Elements.Count;
-            var _e = new TrussElement2Node(n1, n2) { Label = "E" + (c + 1).ToString() };
-            if (model.Elements.Contains(_e))
-                return ;            
-            
-            switch ((AreaUnit)au)
-            {
-                case  AreaUnit.MM2:
-                    _e.A = A / 1000000.0;
-                    break;
-                case  AreaUnit.CM2:
-                    _e.A = A / 10000;
-                    break;
-                case  AreaUnit.M2:
-                    _e.A = A;
-                    break;
-            }
-            model.Elements.Add(_e);
-            
-
-        }
-         * */
-        /// <summary>
-        /// retrive the truss 
-        /// </summary>
-        /// <param name="elementIndex"></param>
-        /// <param name="forceUnit"></param>
-        /// <returns></returns>
-        /*
-        public double GetTrussInternalForce(int elementIndex, int forceUnit)
-        {
-            var _e = model.Elements[elementIndex] as FrameElement2Node;
-            if (_e == null)
-                return 0;
-            Force tmp = _e.GetInternalForceAt(0);
-            return ConverOutputForce(tmp, (ForceUnit)forceUnit).Fx;
-        }
-         * */
-        
-      
-        
-        #endregion
-        #region Frame Methods
+       
+        #region Bar element Methods
         /// <summary>
         /// Add a frame element into the model
         /// </summary>
         /// <param name="node1">first node of the element</param>
         /// <param name="node2">second node of the element</param>
     
-        public void AddFrameElement(int node1, int node2,string elementType)
+        public int AddFrameElement(int node1, int node2,string elementType)
         {
             var n1 = model.Nodes[node1] as MAX_Node;
             var n2 = model.Nodes[node2] as MAX_Node;
             if (n1 == null || n2 == null)
-                return;
+                return 0;
+            int exiting = GetFrameElementIndex(node1, node2);
+            if (exiting>0)
+            {
+                return -(exiting + 1);
+            }
             int c = model.Elements.Count;
 
-            var _e = new MAX_Element(n1, n2, elementType, c + 1);// { Label = lableChar + (c + 1).ToString() };
-            //_e.ElementType = (elementType == "Truss") ? ElementType.TrussElement2Noded : ElementType.FrameElement2Node;
-            if (model.Elements.Contains(_e))
-                return;
+            var _e = new MAX_Element(n1, n2, elementType, c );// { Label = lableChar + (c + 1).ToString() };
             
+            //if (model.Elements.Contains(_e))
+            //    return 0;
+            node_element_graph.AddEdge(_e, node_element_graph.GetNodeByKey( node1), node_element_graph.GetNodeByKey(node2));
             model.Elements.Add(_e);
+            return c + 1;
             //_elements.Add(model.Elements.Count - 1, _e);
 
         }
 
-       
+        /// <summary>
+        /// return the index (0 based) of the element connecting the node1 to node2
+        /// if no element exist then return -1
+        /// </summary>
+        /// <param name="node1"></param>
+        /// <param name="node2"></param>
+        /// <returns></returns>
+        private int GetFrameElementIndex(int node1, int node2)
+        {
+            var n1 = node_element_graph.GetNodeByKey(node1);
+            var n2 = node_element_graph.GetNodeByKey(node2);
+            if (n1 != null && n2 != null)
+            {
+                var elements = node_element_graph.GetEdgesByNodes(n1, n2);
+                if (elements.Any())
+                    return elements.First().Key;
+                else
+                    return -1;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+
         /// <summary>
         /// Set the physical properties of the currentElement
         /// </summary>
